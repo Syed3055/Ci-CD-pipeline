@@ -1,0 +1,347 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "type": "GetMetadata",
+        "typeProperties": {
+          "datasetSettings": {
+            "type": "DelimitedText",
+            "typeProperties": {
+              "location": {
+                "type": "LakehouseLocation",
+                "folderPath": "copydata"
+              },
+              "columnDelimiter": ",",
+              "quoteChar": "\"",
+              "escapeChar": "\\",
+              "firstRowAsHeader": true
+            },
+            "schema": [],
+            "linkedService": {
+              "name": "LH_55oo",
+              "properties": {
+                "type": "Lakehouse",
+                "typeProperties": {
+                  "artifactId": "2f4b4c86-2572-8964-44a7-28003ec3dccc",
+                  "workspaceId": "00000000-0000-0000-0000-000000000000",
+                  "rootFolder": "Files"
+                },
+                "annotations": []
+              }
+            },
+            "annotations": []
+          },
+          "fieldList": [
+            "childItems"
+          ],
+          "storeSettings": {
+            "type": "LakehouseReadSettings",
+            "enablePartitionDiscovery": false
+          },
+          "formatSettings": {
+            "type": "DelimitedTextReadSettings"
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Get Metadata1",
+        "dependsOn": []
+      },
+      {
+        "type": "ForEach",
+        "typeProperties": {
+          "isSequential": true,
+          "items": {
+            "value": "@activity('Get Metadata1').output.childItems",
+            "type": "Expression"
+          },
+          "activities": [
+            {
+              "type": "GetMetadata",
+              "typeProperties": {
+                "datasetSettings": {
+                  "type": "DelimitedText",
+                  "typeProperties": {
+                    "location": {
+                      "type": "LakehouseLocation",
+                      "folderPath": "copydata",
+                      "fileName": {
+                        "value": "@item().name",
+                        "type": "Expression"
+                      }
+                    },
+                    "columnDelimiter": ",",
+                    "quoteChar": "\"",
+                    "escapeChar": "\\",
+                    "firstRowAsHeader": true
+                  },
+                  "schema": [],
+                  "linkedService": {
+                    "name": "LH_55oo",
+                    "properties": {
+                      "type": "Lakehouse",
+                      "typeProperties": {
+                        "artifactId": "2f4b4c86-2572-8964-44a7-28003ec3dccc",
+                        "workspaceId": "00000000-0000-0000-0000-000000000000",
+                        "rootFolder": "Files"
+                      },
+                      "annotations": []
+                    }
+                  },
+                  "annotations": []
+                },
+                "fieldList": [
+                  "structure",
+                  "itemName"
+                ],
+                "storeSettings": {
+                  "type": "LakehouseReadSettings",
+                  "enablePartitionDiscovery": false
+                },
+                "formatSettings": {
+                  "type": "DelimitedTextReadSettings"
+                }
+              },
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "files_name",
+              "dependsOn": []
+            },
+            {
+              "type": "GetMetadata",
+              "typeProperties": {
+                "datasetSettings": {
+                  "type": "DelimitedText",
+                  "typeProperties": {
+                    "location": {
+                      "type": "LakehouseLocation",
+                      "folderPath": "copydata",
+                      "fileName": "structure_file.csv"
+                    },
+                    "columnDelimiter": ",",
+                    "quoteChar": "\"",
+                    "escapeChar": "\\",
+                    "firstRowAsHeader": true
+                  },
+                  "schema": [],
+                  "linkedService": {
+                    "name": "LH_55oo",
+                    "properties": {
+                      "type": "Lakehouse",
+                      "typeProperties": {
+                        "artifactId": "2f4b4c86-2572-8964-44a7-28003ec3dccc",
+                        "workspaceId": "00000000-0000-0000-0000-000000000000",
+                        "rootFolder": "Files"
+                      },
+                      "annotations": []
+                    }
+                  },
+                  "annotations": []
+                },
+                "fieldList": [
+                  "structure"
+                ],
+                "storeSettings": {
+                  "type": "LakehouseReadSettings",
+                  "enablePartitionDiscovery": false
+                },
+                "formatSettings": {
+                  "type": "DelimitedTextReadSettings"
+                }
+              },
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "structure_file",
+              "dependsOn": []
+            },
+            {
+              "type": "IfCondition",
+              "typeProperties": {
+                "expression": {
+                  "value": "@equals(activity('files_name').output.structure,activity('structure_file').output.structure)",
+                  "type": "Expression"
+                },
+                "ifTrueActivities": [
+                  {
+                    "type": "Copy",
+                    "typeProperties": {
+                      "source": {
+                        "type": "DelimitedTextSource",
+                        "formatSettings": {
+                          "type": "DelimitedTextReadSettings"
+                        },
+                        "storeSettings": {
+                          "type": "LakehouseReadSettings",
+                          "recursive": true,
+                          "enablePartitionDiscovery": false
+                        },
+                        "datasetSettings": {
+                          "type": "DelimitedText",
+                          "typeProperties": {
+                            "location": {
+                              "type": "LakehouseLocation",
+                              "folderPath": "copydata",
+                              "fileName": {
+                                "value": "@variables('File_Name')",
+                                "type": "Expression"
+                              }
+                            },
+                            "columnDelimiter": ",",
+                            "quoteChar": "\"",
+                            "escapeChar": "\\",
+                            "firstRowAsHeader": true
+                          },
+                          "schema": [],
+                          "linkedService": {
+                            "name": "LH_55oo",
+                            "properties": {
+                              "type": "Lakehouse",
+                              "typeProperties": {
+                                "artifactId": "2f4b4c86-2572-8964-44a7-28003ec3dccc",
+                                "workspaceId": "00000000-0000-0000-0000-000000000000",
+                                "rootFolder": "Files"
+                              },
+                              "annotations": []
+                            }
+                          },
+                          "annotations": []
+                        }
+                      },
+                      "sink": {
+                        "type": "DelimitedTextSink",
+                        "formatSettings": {
+                          "type": "DelimitedTextWriteSettings",
+                          "fileExtension": ".txt"
+                        },
+                        "storeSettings": {
+                          "type": "LakehouseWriteSettings"
+                        },
+                        "datasetSettings": {
+                          "type": "DelimitedText",
+                          "typeProperties": {
+                            "location": {
+                              "type": "LakehouseLocation",
+                              "folderPath": "item",
+                              "fileName": {
+                                "value": "@variables('File_Name')",
+                                "type": "Expression"
+                              }
+                            },
+                            "columnDelimiter": ",",
+                            "quoteChar": "\"",
+                            "escapeChar": "\\",
+                            "firstRowAsHeader": true
+                          },
+                          "schema": [],
+                          "linkedService": {
+                            "name": "LH_55oo",
+                            "properties": {
+                              "type": "Lakehouse",
+                              "typeProperties": {
+                                "artifactId": "2f4b4c86-2572-8964-44a7-28003ec3dccc",
+                                "workspaceId": "00000000-0000-0000-0000-000000000000",
+                                "rootFolder": "Files"
+                              },
+                              "annotations": []
+                            }
+                          },
+                          "annotations": []
+                        }
+                      },
+                      "translator": {
+                        "type": "TabularTranslator",
+                        "typeConversion": true,
+                        "typeConversionSettings": {
+                          "allowDataTruncation": true,
+                          "treatBooleanAsNumber": false
+                        }
+                      },
+                      "enableStaging": false
+                    },
+                    "policy": {
+                      "timeout": "0.12:00:00",
+                      "retry": 0,
+                      "retryIntervalInSeconds": 30,
+                      "secureInput": false,
+                      "secureOutput": false
+                    },
+                    "name": "Copy data1",
+                    "dependsOn": [
+                      {
+                        "activity": "Set variable1",
+                        "dependencyConditions": [
+                          "Succeeded"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "SetVariable",
+                    "typeProperties": {
+                      "variableName": "File_Name",
+                      "value": {
+                        "value": "@activity('files_name').output.itemName",
+                        "type": "Expression"
+                      }
+                    },
+                    "policy": {
+                      "secureInput": false,
+                      "secureOutput": false
+                    },
+                    "name": "Set variable1",
+                    "dependsOn": []
+                  }
+                ],
+                "ifFalseActivities": []
+              },
+              "name": "If Condition1",
+              "dependsOn": [
+                {
+                  "activity": "files_name",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                },
+                {
+                  "activity": "structure_file",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "name": "ForEach1",
+        "dependsOn": [
+          {
+            "activity": "Get Metadata1",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      }
+    ],
+    "variables": {
+      "File_Name": {
+        "type": "String"
+      }
+    }
+  }
+}

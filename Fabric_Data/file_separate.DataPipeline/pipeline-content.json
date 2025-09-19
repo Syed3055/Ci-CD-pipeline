@@ -1,0 +1,1000 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "type": "GetMetadata",
+        "typeProperties": {
+          "datasetSettings": {
+            "type": "Binary",
+            "typeProperties": {
+              "location": {
+                "type": "LakehouseLocation",
+                "folderPath": "copydata"
+              }
+            },
+            "linkedService": {
+              "name": "LH_55oo",
+              "properties": {
+                "type": "Lakehouse",
+                "typeProperties": {
+                  "artifactId": "2f4b4c86-2572-8964-44a7-28003ec3dccc",
+                  "workspaceId": "00000000-0000-0000-0000-000000000000",
+                  "rootFolder": "Files"
+                },
+                "annotations": []
+              }
+            },
+            "annotations": []
+          },
+          "fieldList": [
+            "childItems"
+          ],
+          "storeSettings": {
+            "type": "LakehouseReadSettings",
+            "recursive": true,
+            "enablePartitionDiscovery": false
+          },
+          "formatSettings": {
+            "type": "BinaryReadSettings"
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Get files",
+        "dependsOn": []
+      },
+      {
+        "type": "ForEach",
+        "typeProperties": {
+          "isSequential": true,
+          "items": {
+            "value": "@activity('Get files').output.childItems",
+            "type": "Expression"
+          },
+          "activities": [
+            {
+              "type": "SetVariable",
+              "typeProperties": {
+                "variableName": "File_name",
+                "value": {
+                  "value": "@item().name",
+                  "type": "Expression"
+                }
+              },
+              "policy": {
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "file name",
+              "dependsOn": []
+            },
+            {
+              "type": "Switch",
+              "typeProperties": {
+                "on": {
+                  "value": "@{trim(\n  if(contains(variables('File_name'), 'sales'), 'sales',\n    if(contains(variables('File_name'), 'product'), 'product',\n      if(contains(variables('File_name'), 'item'), 'item', 'unknown')))\n)}\n\n\n\n\n",
+                  "type": "Expression"
+                },
+                "cases": [
+                  {
+                    "value": "sales",
+                    "activities": [
+                      {
+                        "type": "Copy",
+                        "typeProperties": {
+                          "source": {
+                            "type": "DelimitedTextSource",
+                            "formatSettings": {
+                              "type": "DelimitedTextReadSettings"
+                            },
+                            "storeSettings": {
+                              "type": "LakehouseReadSettings",
+                              "recursive": true,
+                              "enablePartitionDiscovery": false
+                            },
+                            "datasetSettings": {
+                              "type": "DelimitedText",
+                              "typeProperties": {
+                                "location": {
+                                  "type": "LakehouseLocation",
+                                  "folderPath": "copydata",
+                                  "fileName": {
+                                    "value": "@variables('File_name')",
+                                    "type": "Expression"
+                                  }
+                                },
+                                "columnDelimiter": ",",
+                                "quoteChar": "\"",
+                                "escapeChar": "\\",
+                                "firstRowAsHeader": true
+                              },
+                              "schema": [],
+                              "linkedService": {
+                                "name": "LH_55oo",
+                                "properties": {
+                                  "type": "Lakehouse",
+                                  "typeProperties": {
+                                    "artifactId": "3ec3dccc-2800-44a7-8964-25722f4b4c86",
+                                    "workspaceId": "010417d3-a626-4bd8-b75b-b5841fec3ed9",
+                                    "rootFolder": "Files"
+                                  },
+                                  "annotations": []
+                                }
+                              },
+                              "annotations": []
+                            }
+                          },
+                          "sink": {
+                            "type": "DelimitedTextSink",
+                            "formatSettings": {
+                              "type": "DelimitedTextWriteSettings",
+                              "fileExtension": ".txt"
+                            },
+                            "storeSettings": {
+                              "type": "LakehouseWriteSettings"
+                            },
+                            "datasetSettings": {
+                              "type": "DelimitedText",
+                              "typeProperties": {
+                                "location": {
+                                  "type": "LakehouseLocation",
+                                  "folderPath": "sales",
+                                  "fileName": {
+                                    "value": "@variables('File_name')",
+                                    "type": "Expression"
+                                  }
+                                },
+                                "columnDelimiter": ",",
+                                "quoteChar": "\"",
+                                "escapeChar": "\\",
+                                "firstRowAsHeader": true
+                              },
+                              "schema": [],
+                              "linkedService": {
+                                "name": "LH_55oo",
+                                "properties": {
+                                  "type": "Lakehouse",
+                                  "typeProperties": {
+                                    "artifactId": "3ec3dccc-2800-44a7-8964-25722f4b4c86",
+                                    "workspaceId": "010417d3-a626-4bd8-b75b-b5841fec3ed9",
+                                    "rootFolder": "Files"
+                                  },
+                                  "annotations": []
+                                }
+                              },
+                              "annotations": []
+                            }
+                          },
+                          "translator": {
+                            "type": "TabularTranslator",
+                            "typeConversion": true,
+                            "typeConversionSettings": {
+                              "allowDataTruncation": true,
+                              "treatBooleanAsNumber": false
+                            }
+                          },
+                          "enableStaging": false
+                        },
+                        "policy": {
+                          "timeout": "0.12:00:00",
+                          "retry": 0,
+                          "retryIntervalInSeconds": 30,
+                          "secureInput": false,
+                          "secureOutput": false
+                        },
+                        "name": "Copy data1",
+                        "dependsOn": []
+                      },
+                      {
+                        "type": "SetVariable",
+                        "typeProperties": {
+                          "variableName": "file2",
+                          "value": {
+                            "value": "@variables('File_name')",
+                            "type": "Expression"
+                          }
+                        },
+                        "policy": {
+                          "secureInput": false,
+                          "secureOutput": false
+                        },
+                        "name": "Set variable1",
+                        "dependsOn": [
+                          {
+                            "activity": "Copy data1",
+                            "dependencyConditions": [
+                              "Succeeded"
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "value": "product",
+                    "activities": [
+                      {
+                        "type": "Copy",
+                        "typeProperties": {
+                          "source": {
+                            "type": "DelimitedTextSource",
+                            "formatSettings": {
+                              "type": "DelimitedTextReadSettings"
+                            },
+                            "storeSettings": {
+                              "type": "LakehouseReadSettings",
+                              "recursive": true,
+                              "enablePartitionDiscovery": false
+                            },
+                            "datasetSettings": {
+                              "type": "DelimitedText",
+                              "typeProperties": {
+                                "location": {
+                                  "type": "LakehouseLocation",
+                                  "folderPath": "copydata",
+                                  "fileName": {
+                                    "value": "@variables('File_name')",
+                                    "type": "Expression"
+                                  }
+                                },
+                                "columnDelimiter": ",",
+                                "quoteChar": "\"",
+                                "escapeChar": "\\",
+                                "firstRowAsHeader": true
+                              },
+                              "schema": [],
+                              "linkedService": {
+                                "name": "LH_55oo",
+                                "properties": {
+                                  "type": "Lakehouse",
+                                  "typeProperties": {
+                                    "artifactId": "3ec3dccc-2800-44a7-8964-25722f4b4c86",
+                                    "workspaceId": "010417d3-a626-4bd8-b75b-b5841fec3ed9",
+                                    "rootFolder": "Files"
+                                  },
+                                  "annotations": []
+                                }
+                              },
+                              "annotations": []
+                            }
+                          },
+                          "sink": {
+                            "type": "DelimitedTextSink",
+                            "formatSettings": {
+                              "type": "DelimitedTextWriteSettings",
+                              "fileExtension": ".txt"
+                            },
+                            "storeSettings": {
+                              "type": "LakehouseWriteSettings"
+                            },
+                            "datasetSettings": {
+                              "type": "DelimitedText",
+                              "typeProperties": {
+                                "location": {
+                                  "type": "LakehouseLocation",
+                                  "folderPath": "product"
+                                },
+                                "columnDelimiter": ",",
+                                "quoteChar": "\"",
+                                "escapeChar": "\\",
+                                "firstRowAsHeader": true
+                              },
+                              "schema": [],
+                              "linkedService": {
+                                "name": "LH_55oo",
+                                "properties": {
+                                  "type": "Lakehouse",
+                                  "typeProperties": {
+                                    "artifactId": "3ec3dccc-2800-44a7-8964-25722f4b4c86",
+                                    "workspaceId": "010417d3-a626-4bd8-b75b-b5841fec3ed9",
+                                    "rootFolder": "Files"
+                                  },
+                                  "annotations": []
+                                }
+                              },
+                              "annotations": []
+                            }
+                          },
+                          "translator": {
+                            "type": "TabularTranslator",
+                            "typeConversion": true,
+                            "typeConversionSettings": {
+                              "allowDataTruncation": true,
+                              "treatBooleanAsNumber": false
+                            }
+                          },
+                          "enableStaging": false
+                        },
+                        "policy": {
+                          "timeout": "0.12:00:00",
+                          "retry": 0,
+                          "retryIntervalInSeconds": 30,
+                          "secureInput": false,
+                          "secureOutput": false
+                        },
+                        "name": "Copy data2",
+                        "dependsOn": []
+                      },
+                      {
+                        "type": "SetVariable",
+                        "typeProperties": {
+                          "variableName": "productname",
+                          "value": {
+                            "value": "@variables('File_name')",
+                            "type": "Expression"
+                          }
+                        },
+                        "policy": {
+                          "secureInput": false,
+                          "secureOutput": false
+                        },
+                        "name": "Set variable2",
+                        "dependsOn": [
+                          {
+                            "activity": "Copy data2",
+                            "dependencyConditions": [
+                              "Succeeded"
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "value": "item",
+                    "activities": [
+                      {
+                        "type": "Copy",
+                        "typeProperties": {
+                          "source": {
+                            "type": "DelimitedTextSource",
+                            "formatSettings": {
+                              "type": "DelimitedTextReadSettings"
+                            },
+                            "storeSettings": {
+                              "type": "LakehouseReadSettings",
+                              "recursive": true,
+                              "enablePartitionDiscovery": false
+                            },
+                            "datasetSettings": {
+                              "type": "DelimitedText",
+                              "typeProperties": {
+                                "location": {
+                                  "type": "LakehouseLocation",
+                                  "folderPath": "copydata",
+                                  "fileName": {
+                                    "value": "@variables('File_name')",
+                                    "type": "Expression"
+                                  }
+                                },
+                                "columnDelimiter": ",",
+                                "quoteChar": "\"",
+                                "escapeChar": "\\",
+                                "firstRowAsHeader": true
+                              },
+                              "schema": [],
+                              "linkedService": {
+                                "name": "LH_55oo",
+                                "properties": {
+                                  "type": "Lakehouse",
+                                  "typeProperties": {
+                                    "artifactId": "3ec3dccc-2800-44a7-8964-25722f4b4c86",
+                                    "workspaceId": "010417d3-a626-4bd8-b75b-b5841fec3ed9",
+                                    "rootFolder": "Files"
+                                  },
+                                  "annotations": []
+                                }
+                              },
+                              "annotations": []
+                            }
+                          },
+                          "sink": {
+                            "type": "DelimitedTextSink",
+                            "formatSettings": {
+                              "type": "DelimitedTextWriteSettings",
+                              "fileExtension": ".txt"
+                            },
+                            "storeSettings": {
+                              "type": "LakehouseWriteSettings"
+                            },
+                            "datasetSettings": {
+                              "type": "DelimitedText",
+                              "typeProperties": {
+                                "location": {
+                                  "type": "LakehouseLocation",
+                                  "folderPath": "item"
+                                },
+                                "columnDelimiter": ",",
+                                "quoteChar": "\"",
+                                "escapeChar": "\\",
+                                "firstRowAsHeader": true
+                              },
+                              "schema": [],
+                              "linkedService": {
+                                "name": "LH_55oo",
+                                "properties": {
+                                  "type": "Lakehouse",
+                                  "typeProperties": {
+                                    "artifactId": "3ec3dccc-2800-44a7-8964-25722f4b4c86",
+                                    "workspaceId": "010417d3-a626-4bd8-b75b-b5841fec3ed9",
+                                    "rootFolder": "Files"
+                                  },
+                                  "annotations": []
+                                }
+                              },
+                              "annotations": []
+                            }
+                          },
+                          "translator": {
+                            "type": "TabularTranslator",
+                            "typeConversion": true,
+                            "typeConversionSettings": {
+                              "allowDataTruncation": true,
+                              "treatBooleanAsNumber": false
+                            }
+                          },
+                          "enableStaging": false
+                        },
+                        "policy": {
+                          "timeout": "0.12:00:00",
+                          "retry": 0,
+                          "retryIntervalInSeconds": 30,
+                          "secureInput": false,
+                          "secureOutput": false
+                        },
+                        "name": "Copy data3",
+                        "dependsOn": []
+                      },
+                      {
+                        "type": "SetVariable",
+                        "typeProperties": {
+                          "variableName": "item",
+                          "value": {
+                            "value": "@variables('File_name')",
+                            "type": "Expression"
+                          }
+                        },
+                        "policy": {
+                          "secureInput": false,
+                          "secureOutput": false
+                        },
+                        "name": "Set variable3",
+                        "dependsOn": [
+                          {
+                            "activity": "Copy data3",
+                            "dependencyConditions": [
+                              "Succeeded"
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "defaultActivities": []
+              },
+              "name": "Switch1",
+              "state": "Inactive",
+              "onInactiveMarkAs": "Succeeded",
+              "dependsOn": []
+            },
+            {
+              "type": "Wait",
+              "typeProperties": {
+                "waitTimeInSeconds": 5
+              },
+              "name": "Wait1",
+              "dependsOn": [
+                {
+                  "activity": "file name",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "IfCondition",
+              "typeProperties": {
+                "expression": {
+                  "value": "@contains(variables('File_name'),'sales')",
+                  "type": "Expression"
+                },
+                "ifTrueActivities": [
+                  {
+                    "type": "Copy",
+                    "typeProperties": {
+                      "source": {
+                        "type": "DelimitedTextSource",
+                        "formatSettings": {
+                          "type": "DelimitedTextReadSettings"
+                        },
+                        "storeSettings": {
+                          "type": "LakehouseReadSettings",
+                          "recursive": true,
+                          "enablePartitionDiscovery": false
+                        },
+                        "datasetSettings": {
+                          "type": "DelimitedText",
+                          "typeProperties": {
+                            "location": {
+                              "type": "LakehouseLocation",
+                              "folderPath": "copydata",
+                              "fileName": {
+                                "value": "@variables('File_name')",
+                                "type": "Expression"
+                              }
+                            },
+                            "columnDelimiter": ",",
+                            "quoteChar": "\"",
+                            "escapeChar": "\\",
+                            "firstRowAsHeader": true
+                          },
+                          "schema": [],
+                          "linkedService": {
+                            "name": "LH_55oo",
+                            "properties": {
+                              "type": "Lakehouse",
+                              "typeProperties": {
+                                "artifactId": "2f4b4c86-2572-8964-44a7-28003ec3dccc",
+                                "workspaceId": "00000000-0000-0000-0000-000000000000",
+                                "rootFolder": "Files"
+                              },
+                              "annotations": []
+                            }
+                          },
+                          "annotations": []
+                        }
+                      },
+                      "sink": {
+                        "type": "DelimitedTextSink",
+                        "formatSettings": {
+                          "type": "DelimitedTextWriteSettings",
+                          "fileExtension": ".txt"
+                        },
+                        "storeSettings": {
+                          "type": "LakehouseWriteSettings"
+                        },
+                        "datasetSettings": {
+                          "type": "DelimitedText",
+                          "typeProperties": {
+                            "location": {
+                              "type": "LakehouseLocation",
+                              "folderPath": "sales",
+                              "fileName": {
+                                "value": "@variables('File_name')",
+                                "type": "Expression"
+                              }
+                            },
+                            "columnDelimiter": ",",
+                            "quoteChar": "\"",
+                            "escapeChar": "\\",
+                            "firstRowAsHeader": true
+                          },
+                          "schema": [],
+                          "linkedService": {
+                            "name": "LH_55oo",
+                            "properties": {
+                              "type": "Lakehouse",
+                              "typeProperties": {
+                                "artifactId": "2f4b4c86-2572-8964-44a7-28003ec3dccc",
+                                "workspaceId": "00000000-0000-0000-0000-000000000000",
+                                "rootFolder": "Files"
+                              },
+                              "annotations": []
+                            }
+                          },
+                          "annotations": []
+                        }
+                      },
+                      "translator": {
+                        "type": "TabularTranslator",
+                        "typeConversion": true,
+                        "typeConversionSettings": {
+                          "allowDataTruncation": true,
+                          "treatBooleanAsNumber": false
+                        }
+                      },
+                      "enableStaging": false
+                    },
+                    "policy": {
+                      "timeout": "0.12:00:00",
+                      "retry": 0,
+                      "retryIntervalInSeconds": 30,
+                      "secureInput": false,
+                      "secureOutput": false
+                    },
+                    "name": "Copy data4",
+                    "dependsOn": []
+                  }
+                ],
+                "ifFalseActivities": []
+              },
+              "name": "If Condition1",
+              "dependsOn": [
+                {
+                  "activity": "Wait1",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "IfCondition",
+              "typeProperties": {
+                "expression": {
+                  "value": "@contains(variables('File_name'),'product')",
+                  "type": "Expression"
+                },
+                "ifTrueActivities": [
+                  {
+                    "type": "Copy",
+                    "typeProperties": {
+                      "source": {
+                        "type": "DelimitedTextSource",
+                        "formatSettings": {
+                          "type": "DelimitedTextReadSettings"
+                        },
+                        "storeSettings": {
+                          "type": "LakehouseReadSettings",
+                          "recursive": true,
+                          "enablePartitionDiscovery": false
+                        },
+                        "datasetSettings": {
+                          "type": "DelimitedText",
+                          "typeProperties": {
+                            "location": {
+                              "type": "LakehouseLocation",
+                              "folderPath": "copydata",
+                              "fileName": {
+                                "value": "@variables('File_name')",
+                                "type": "Expression"
+                              }
+                            },
+                            "columnDelimiter": ",",
+                            "quoteChar": "\"",
+                            "escapeChar": "\\",
+                            "firstRowAsHeader": true
+                          },
+                          "schema": [],
+                          "linkedService": {
+                            "name": "LH_55oo",
+                            "properties": {
+                              "type": "Lakehouse",
+                              "typeProperties": {
+                                "artifactId": "2f4b4c86-2572-8964-44a7-28003ec3dccc",
+                                "workspaceId": "00000000-0000-0000-0000-000000000000",
+                                "rootFolder": "Files"
+                              },
+                              "annotations": []
+                            }
+                          },
+                          "annotations": []
+                        }
+                      },
+                      "sink": {
+                        "type": "DelimitedTextSink",
+                        "formatSettings": {
+                          "type": "DelimitedTextWriteSettings",
+                          "fileExtension": ".txt"
+                        },
+                        "storeSettings": {
+                          "type": "LakehouseWriteSettings"
+                        },
+                        "datasetSettings": {
+                          "type": "DelimitedText",
+                          "typeProperties": {
+                            "location": {
+                              "type": "LakehouseLocation",
+                              "folderPath": "product",
+                              "fileName": {
+                                "value": "@variables('File_name')",
+                                "type": "Expression"
+                              }
+                            },
+                            "columnDelimiter": ",",
+                            "quoteChar": "\"",
+                            "escapeChar": "\\",
+                            "firstRowAsHeader": true
+                          },
+                          "schema": [],
+                          "linkedService": {
+                            "name": "LH_55oo",
+                            "properties": {
+                              "type": "Lakehouse",
+                              "typeProperties": {
+                                "artifactId": "2f4b4c86-2572-8964-44a7-28003ec3dccc",
+                                "workspaceId": "00000000-0000-0000-0000-000000000000",
+                                "rootFolder": "Files"
+                              },
+                              "annotations": []
+                            }
+                          },
+                          "annotations": []
+                        }
+                      },
+                      "translator": {
+                        "type": "TabularTranslator",
+                        "typeConversion": true,
+                        "typeConversionSettings": {
+                          "allowDataTruncation": true,
+                          "treatBooleanAsNumber": false
+                        }
+                      },
+                      "enableStaging": false
+                    },
+                    "policy": {
+                      "timeout": "0.12:00:00",
+                      "retry": 0,
+                      "retryIntervalInSeconds": 30,
+                      "secureInput": false,
+                      "secureOutput": false
+                    },
+                    "name": "Copy data5",
+                    "dependsOn": []
+                  }
+                ],
+                "ifFalseActivities": []
+              },
+              "name": "If Condition2",
+              "dependsOn": [
+                {
+                  "activity": "Wait1",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "IfCondition",
+              "typeProperties": {
+                "expression": {
+                  "value": "@contains(variables('File_name'),'item')",
+                  "type": "Expression"
+                },
+                "ifTrueActivities": [
+                  {
+                    "type": "Copy",
+                    "typeProperties": {
+                      "source": {
+                        "type": "DelimitedTextSource",
+                        "formatSettings": {
+                          "type": "DelimitedTextReadSettings"
+                        },
+                        "storeSettings": {
+                          "type": "LakehouseReadSettings",
+                          "recursive": true,
+                          "enablePartitionDiscovery": false
+                        },
+                        "datasetSettings": {
+                          "type": "DelimitedText",
+                          "typeProperties": {
+                            "location": {
+                              "type": "LakehouseLocation",
+                              "folderPath": "copydata",
+                              "fileName": {
+                                "value": "@variables('File_name')",
+                                "type": "Expression"
+                              }
+                            },
+                            "columnDelimiter": ",",
+                            "quoteChar": "\"",
+                            "escapeChar": "\\",
+                            "firstRowAsHeader": true
+                          },
+                          "schema": [],
+                          "linkedService": {
+                            "name": "LH_55oo",
+                            "properties": {
+                              "type": "Lakehouse",
+                              "typeProperties": {
+                                "artifactId": "2f4b4c86-2572-8964-44a7-28003ec3dccc",
+                                "workspaceId": "00000000-0000-0000-0000-000000000000",
+                                "rootFolder": "Files"
+                              },
+                              "annotations": []
+                            }
+                          },
+                          "annotations": []
+                        }
+                      },
+                      "sink": {
+                        "type": "DelimitedTextSink",
+                        "formatSettings": {
+                          "type": "DelimitedTextWriteSettings",
+                          "fileExtension": ".txt"
+                        },
+                        "storeSettings": {
+                          "type": "LakehouseWriteSettings"
+                        },
+                        "datasetSettings": {
+                          "type": "DelimitedText",
+                          "typeProperties": {
+                            "location": {
+                              "type": "LakehouseLocation",
+                              "folderPath": "item",
+                              "fileName": {
+                                "value": "@variables('File_name')",
+                                "type": "Expression"
+                              }
+                            },
+                            "columnDelimiter": ",",
+                            "quoteChar": "\"",
+                            "escapeChar": "\\",
+                            "firstRowAsHeader": true
+                          },
+                          "schema": [],
+                          "linkedService": {
+                            "name": "LH_55oo",
+                            "properties": {
+                              "type": "Lakehouse",
+                              "typeProperties": {
+                                "artifactId": "2f4b4c86-2572-8964-44a7-28003ec3dccc",
+                                "workspaceId": "00000000-0000-0000-0000-000000000000",
+                                "rootFolder": "Files"
+                              },
+                              "annotations": []
+                            }
+                          },
+                          "annotations": []
+                        }
+                      },
+                      "translator": {
+                        "type": "TabularTranslator",
+                        "typeConversion": true,
+                        "typeConversionSettings": {
+                          "allowDataTruncation": true,
+                          "treatBooleanAsNumber": false
+                        }
+                      },
+                      "enableStaging": false
+                    },
+                    "policy": {
+                      "timeout": "0.12:00:00",
+                      "retry": 0,
+                      "retryIntervalInSeconds": 30,
+                      "secureInput": false,
+                      "secureOutput": false
+                    },
+                    "name": "Copy data5_copy1",
+                    "dependsOn": []
+                  }
+                ],
+                "ifFalseActivities": []
+              },
+              "name": "If Condition2_copy1",
+              "dependsOn": [
+                {
+                  "activity": "Wait1",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "name": "ForEach1",
+        "dependsOn": [
+          {
+            "activity": "Get files",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "ForEach",
+        "typeProperties": {
+          "isSequential": true,
+          "items": {
+            "value": "@activity('Get files').output.childItems",
+            "type": "Expression"
+          },
+          "activities": [
+            {
+              "type": "Delete",
+              "typeProperties": {
+                "enableLogging": false,
+                "datasetSettings": {
+                  "type": "Binary",
+                  "typeProperties": {
+                    "location": {
+                      "type": "LakehouseLocation",
+                      "folderPath": "copydata",
+                      "fileName": {
+                        "value": "@variables('File2')",
+                        "type": "Expression"
+                      }
+                    }
+                  },
+                  "linkedService": {
+                    "name": "LH_55oo",
+                    "properties": {
+                      "type": "Lakehouse",
+                      "typeProperties": {
+                        "artifactId": "2f4b4c86-2572-8964-44a7-28003ec3dccc",
+                        "workspaceId": "00000000-0000-0000-0000-000000000000",
+                        "rootFolder": "Files"
+                      },
+                      "annotations": []
+                    }
+                  },
+                  "annotations": []
+                },
+                "storeSettings": {
+                  "type": "LakehouseReadSettings",
+                  "recursive": true,
+                  "enablePartitionDiscovery": false
+                }
+              },
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "Delete data2",
+              "dependsOn": [
+                {
+                  "activity": "Set variable4",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "SetVariable",
+              "typeProperties": {
+                "variableName": "file2",
+                "value": {
+                  "value": "@item().name",
+                  "type": "Expression"
+                }
+              },
+              "policy": {
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "Set variable4",
+              "dependsOn": []
+            }
+          ]
+        },
+        "name": "ForEach2",
+        "dependsOn": [
+          {
+            "activity": "ForEach1",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      }
+    ],
+    "variables": {
+      "File_name": {
+        "type": "String"
+      },
+      "productname": {
+        "type": "String"
+      },
+      "item": {
+        "type": "String"
+      },
+      "File2": {
+        "type": "String"
+      }
+    }
+  }
+}

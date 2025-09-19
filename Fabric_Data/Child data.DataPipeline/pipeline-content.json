@@ -1,0 +1,328 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "type": "GetMetadata",
+        "typeProperties": {
+          "datasetSettings": {
+            "type": "DelimitedText",
+            "typeProperties": {
+              "location": {
+                "type": "LakehouseLocation",
+                "folderPath": {
+                  "value": "@pipeline().parameters.FolderName",
+                  "type": "Expression"
+                }
+              },
+              "columnDelimiter": ",",
+              "quoteChar": "\"",
+              "escapeChar": "\\",
+              "firstRowAsHeader": true
+            },
+            "schema": [],
+            "linkedService": {
+              "name": "LH_55oo",
+              "properties": {
+                "type": "Lakehouse",
+                "typeProperties": {
+                  "artifactId": "2f4b4c86-2572-8964-44a7-28003ec3dccc",
+                  "workspaceId": "00000000-0000-0000-0000-000000000000",
+                  "rootFolder": "Files"
+                },
+                "annotations": []
+              }
+            },
+            "annotations": []
+          },
+          "fieldList": [
+            "childItems"
+          ],
+          "storeSettings": {
+            "type": "LakehouseReadSettings",
+            "enablePartitionDiscovery": false
+          },
+          "formatSettings": {
+            "type": "DelimitedTextReadSettings"
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Get file Metadata",
+        "dependsOn": []
+      },
+      {
+        "type": "ForEach",
+        "typeProperties": {
+          "isSequential": true,
+          "items": {
+            "value": "@activity('Get file Metadata').output.childItems",
+            "type": "Expression"
+          },
+          "activities": [
+            {
+              "type": "GetMetadata",
+              "typeProperties": {
+                "datasetSettings": {
+                  "type": "Binary",
+                  "typeProperties": {
+                    "location": {
+                      "type": "LakehouseLocation",
+                      "folderPath": {
+                        "value": "@pipeline().parameters.FolderName",
+                        "type": "Expression"
+                      },
+                      "fileName": {
+                        "value": "@item().name",
+                        "type": "Expression"
+                      }
+                    }
+                  },
+                  "linkedService": {
+                    "name": "LH_55oo",
+                    "properties": {
+                      "type": "Lakehouse",
+                      "typeProperties": {
+                        "artifactId": "2f4b4c86-2572-8964-44a7-28003ec3dccc",
+                        "workspaceId": "00000000-0000-0000-0000-000000000000",
+                        "rootFolder": "Files"
+                      },
+                      "annotations": []
+                    }
+                  },
+                  "annotations": []
+                },
+                "fieldList": [
+                  "itemName",
+                  "lastModified"
+                ],
+                "storeSettings": {
+                  "type": "LakehouseReadSettings",
+                  "enablePartitionDiscovery": false
+                },
+                "formatSettings": {
+                  "type": "BinaryReadSettings"
+                }
+              },
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "file information",
+              "dependsOn": []
+            },
+            {
+              "type": "IfCondition",
+              "typeProperties": {
+                "expression": {
+                  "value": "@greater(activity('file information').output.lastModified,variables('lastmodified_date'))",
+                  "type": "Expression"
+                },
+                "ifTrueActivities": [
+                  {
+                    "type": "SetVariable",
+                    "typeProperties": {
+                      "variableName": "lastmodified_date",
+                      "value": {
+                        "value": "@activity('file information').output.lastModified",
+                        "type": "Expression"
+                      }
+                    },
+                    "policy": {
+                      "secureInput": false,
+                      "secureOutput": false
+                    },
+                    "name": "set_variable_lastmodified",
+                    "dependsOn": []
+                  },
+                  {
+                    "type": "SetVariable",
+                    "typeProperties": {
+                      "variableName": "filename",
+                      "value": {
+                        "value": "@activity('file information').output.itemName",
+                        "type": "Expression"
+                      }
+                    },
+                    "policy": {
+                      "secureInput": false,
+                      "secureOutput": false
+                    },
+                    "name": "Set variable file name",
+                    "dependsOn": [
+                      {
+                        "activity": "set_variable_lastmodified",
+                        "dependencyConditions": [
+                          "Succeeded"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "ifFalseActivities": []
+              },
+              "name": "Condition Check",
+              "dependsOn": [
+                {
+                  "activity": "file information",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "name": "Loop the files",
+        "dependsOn": [
+          {
+            "activity": "Get file Metadata",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Copy",
+        "typeProperties": {
+          "source": {
+            "type": "DelimitedTextSource",
+            "formatSettings": {
+              "type": "DelimitedTextReadSettings"
+            },
+            "storeSettings": {
+              "type": "LakehouseReadSettings",
+              "recursive": true,
+              "enablePartitionDiscovery": false
+            },
+            "datasetSettings": {
+              "type": "DelimitedText",
+              "typeProperties": {
+                "location": {
+                  "type": "LakehouseLocation",
+                  "folderPath": {
+                    "value": "@pipeline().parameters.FolderName",
+                    "type": "Expression"
+                  },
+                  "fileName": {
+                    "value": "@variables('filename')",
+                    "type": "Expression"
+                  }
+                },
+                "columnDelimiter": ",",
+                "quoteChar": "\"",
+                "escapeChar": "\\",
+                "firstRowAsHeader": true
+              },
+              "schema": [],
+              "linkedService": {
+                "name": "LH_55oo",
+                "properties": {
+                  "type": "Lakehouse",
+                  "typeProperties": {
+                    "artifactId": "2f4b4c86-2572-8964-44a7-28003ec3dccc",
+                    "workspaceId": "00000000-0000-0000-0000-000000000000",
+                    "rootFolder": "Files"
+                  },
+                  "annotations": []
+                }
+              },
+              "annotations": []
+            }
+          },
+          "sink": {
+            "type": "DelimitedTextSink",
+            "formatSettings": {
+              "type": "DelimitedTextWriteSettings",
+              "fileExtension": ".txt"
+            },
+            "storeSettings": {
+              "type": "LakehouseWriteSettings"
+            },
+            "datasetSettings": {
+              "type": "DelimitedText",
+              "typeProperties": {
+                "location": {
+                  "type": "LakehouseLocation",
+                  "folderPath": "copydata",
+                  "fileName": {
+                    "value": "@variables('filename')",
+                    "type": "Expression"
+                  }
+                },
+                "columnDelimiter": ",",
+                "quoteChar": "\"",
+                "escapeChar": "\\",
+                "firstRowAsHeader": true
+              },
+              "schema": [],
+              "linkedService": {
+                "name": "LH_55oo",
+                "properties": {
+                  "type": "Lakehouse",
+                  "typeProperties": {
+                    "artifactId": "2f4b4c86-2572-8964-44a7-28003ec3dccc",
+                    "workspaceId": "00000000-0000-0000-0000-000000000000",
+                    "rootFolder": "Files"
+                  },
+                  "annotations": []
+                }
+              },
+              "annotations": []
+            }
+          },
+          "translator": {
+            "type": "TabularTranslator",
+            "typeConversion": true,
+            "typeConversionSettings": {
+              "allowDataTruncation": true,
+              "treatBooleanAsNumber": false
+            }
+          },
+          "enableStaging": false
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Data copy load",
+        "dependsOn": [
+          {
+            "activity": "Loop the files",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      }
+    ],
+    "parameters": {
+      "FolderName": {
+        "type": "string"
+      }
+    },
+    "variables": {
+      "Foldername": {
+        "type": "String"
+      },
+      "filename": {
+        "type": "String"
+      },
+      "lastmodified_date": {
+        "type": "String",
+        "defaultValue": "1900-01-01 00:00:00"
+      }
+    }
+  }
+}
